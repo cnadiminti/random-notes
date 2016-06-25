@@ -42,6 +42,9 @@
   use neutron;
   show tables;
   select * from vips;
+  
+  mysql -u neutron -p neutron -e "show columns from pools"
+  neutron-db-manage --config-file /etc/neutron/neutron.conf  --config-file /etc/neutron/plugins/ml2/ml2_conf.ini upgrade  --delta 1
 #+end_src
 
 * Message Brokers
@@ -218,9 +221,8 @@ ethertype IPv4 (0x0800), length 365: 10.0.0.3.67 >
 
 * Neutron/VPNaaS - CSR
   http://blog.aaronorosen.com/openstack-interface-hot-plugging/
-
-** https://blueprints.launchpad.net/neutron/+spec/cisco-routing-service-vm
-** https://github.com/openstack/neutron-specs/blob/master/specs/juno/cisco-vpnaas-with-cisco-csr-router.rst
+  https://blueprints.launchpad.net/neutron/+spec/cisco-routing-service-vm
+  https://github.com/openstack/neutron-specs/blob/master/specs/juno/cisco-vpnaas-with-cisco-csr-router.rst
 ** Class Diagrams
 #+begin_src sh
 # service plugin
@@ -256,15 +258,11 @@ apt-get install neutron-plugin-vpn-agent
 password: mysecret
 chpasswd: { expire: False }
 ssh_pwauth: True
-
-mysql -u neutron -p neutron -e "show columns from pools"
-neutron-db-manage --config-file /etc/neutron/neutron.conf  --config-file /etc/neutron/plugins/ml2/ml2_conf.ini upgrade  --delta 1
 #+end_src
 
 * Redhat OpenStack Installation
-** Inputs
-*** https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux_OpenStack_Platform/5/html/Installer_and_Foreman_Guide/index.html
-*** https://openstack.redhat.com/Quickstart
+ https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux_OpenStack_Platform/5/html/Installer_and_Foreman_Guide/index.html
+ https://openstack.redhat.com/Quickstart
 
 * Horizon
   Django Basics https://docs.djangoproject.com/en/1.7/intro/tutorial01
