@@ -1,0 +1,279 @@
+* Virtualization
+** KVM(Kernel-based Virtual Machine) and libvirt
+   KVM http://www.linux-kvm.org
+
+   QEMU http://www.qemu.org
+
+** virsh
+** virt-manager
+   http://virt-manager.org/
+
+* Python
+  - Advanced experience with Python language, libraries, and frameworks
+
+  Python design patterns -- Gang of Four(23)
+  
+  Packages
+    eventlet
+
+* Databases
+- Experience with databases
+#+begin_src sh
+  mysql -u root -p
+  show databases;
+  use neutron;
+  show tables;
+  select * from vips;
+#+end_src
+
+* Message Brokers
+- Experience with message brokers (RabbitMQ, Kafka)
+
+* Networking Concepts
+- Expert understanding of networking concepts and protocols (L2-L7, SDN, NFV)
+
+  Hub vs Bridge vs Switch vs Router:  https://www.youtube.com/watch?v=Xmwmezk75Tk
+  
+  A simple http request packet flow
+
+** OSI Model
+
+| Application Layer  | firefox, chrome  |
+| Presentation Layer |                  |
+| Sesion Layer       |                  |
+| Transport Layer    | TCP, UDP         |
+| Network Layer      | IP, Router       |
+| Datalink Layer     | MAC, ARP, Switch |
+| Physical Layer     | Physical Cables  |
+
+** Open vSwitch (OVS)
+  http://openvswitch.org/
+
+  https://www.hastexo.com/system/files/neutron_packet_flows-notes-handout.pdf
+
+  Introduction to Open vSwitch (OVS) https://www.youtube.com/watch?v=rYW7kQRyUvA
+
+  https://openstack.redhat.com/Networking_in_too_much_detail
+
+*** Commands
+#+begin_src sh
+   ovs-vsctl show | more
+   ovs-vsctl add-br chandra-br
+   ovs-vsctl add-port chandra-br chandra-port1
+
+   ovs-ofctl show br-int
+   ovs-ofctl dump-flows br-int
+   ovs-appctl
+
+#+end_Src
+
+*** Working Example with KVM
+    http://git.openvswitch.org/cgi-bin/gitweb.cgi?p=openvswitch;a=blob_plain;f=INSTALL.KVM;hb=HEAD
+
+#+begin_src sh
+    # Add an ovs bridge and connect it to eth0
+    sudo ovs-vsctl add-br mybridge
+    sudo ovs-vsctl show
+    sudo ovs-vsctl add-port mybridge eth0
+    # Make sure to update ipstack to have the connectivity
+    sudo ifconfig eth0 0
+    sudo dhclient mybridge
+    ping google.com
+    ifconfig mybridge
+    route -n
+
+    # Create two tap interfaces and add them to mybridge, and
+    # may be we can create VMs on these ports using vbox
+    sudo ip tuntap add mode tap vport1
+    sudo ip tuntap add mode tap vport2
+    sudo ifconfig vport1 up
+    sudo ifconfig vport2 up
+    ifconfig
+    ovs-vsctl add-port mybridge vport1
+    sudo ovs-vsctl add-port mybridge vport1
+    sudo ovs-vsctl add-port mybridge vport2
+    sudo ovs-vsctl show | more
+    # Delete the tap interfaces
+    sudo ip tuntap del mode tap vport1
+    sudo ip tuntap del mode tap vport2
+
+    # Create two VMs using KVM
+    sudo kvm -m 1024 -net nic,macaddr=00:11:22:EE:EE:EE -net tap,script=/home/cnadimin/KVM/ovs-ifup,downscript=/home/cnadimin/KVM/ovs-ifdown -drive     file=/home/cnadimin/Downloads/linux-0.2.img,boot=on
+    #qemu-system-x86_64 -enable-kvm -name test -S -machine pc-i440fx-trusty,accel=kvm,usb=off -m 1024 -realtime mlock=off -smp 1,sockets=1,cores=1,threads=1 -uuid d549e7d8-f5b2-7b0d-271f-13769d36cd6b -no-user-config -nodefaults -chardev socket,id=charmonitor,path=/var/lib/libvirt/qemu/test.monitor,server,nowait -mon chardev=charmonitor,id=monitor,mode=control -rtc base=utc -no-reboot -boot strict=on -device piix3-usb-uhci,id=usb,bus=pci.0,addr=0x1.0x2 -drive file=/var/lib/libvirt/images/test.img,if=none,id=drive-virtio-disk0,format=raw -device virtio-blk-pci,scsi=off,bus=pci.0,addr=0x5,drive=drive-virtio-disk0,id=virtio-disk0,bootindex=2 -drive file=/home/cnadimin/Downloads/ubuntu-12.04.5-desktop-amd64.iso,if=none,id=drive-ide0-1-0,readonly=on,format=raw -device ide-cd,bus=ide.1,unit=0,drive=drive-ide0-1-0,id=ide0-1-0,bootindex=1 -netdev tap,fd=25,id=hostnet0,vhost=on,vhostfd=26 -device virtio-net-pci,netdev=hostnet0,id=net0,mac=52:54:00:35:79:4c,bus=pci.0,addr=0x3 -chardev pty,id=charserial0 -device isa-serial,chardev=charserial0,id=serial0 -vnc 127.0.0.1:1 -device cirrus-vga,id=video0,bus=pci.0,addr=0x2 -device intel-hda,id=sound0,bus=pci.0,addr=0x4 -device hda-duplex,id=sound0-codec0,bus=sound0.0,cad=0 -device virtio-balloon-pci,id=balloon0,bus=pci.0,addr=0x6
+#+end_src
+
+    Linux Bridge(brctl show)
+
+    veth pair (ethtool -S qvoxxx && ip link show | grep 37:)
+
+    tap device
+
+*** Compare it to Simics Networking
+
+* Neutron Packet Flow - debugging
+  http://2014.texaslinuxfest.org/sites/default/files/HopkinsPPTdeck.pdf
+
+  https://www.hastexo.com/system/files/neutron_packet_flows-notes-handout.pdf
+
+#+begin_src sh
+  tcpdump -A -i qvofb1fef08-65 -s 0 'tcp port 8080 and (((ip[2:2] - ((ip[0]&0xf)<<2)) - ((tcp[12]&0xf0)>>2)) != 0)'
+#+end_src
+
+** Packet Flow Compute Node (GRE/VXLAN tunnels)
+- ping started on VM
+udpcpc
+
+- tcpdump of ping on qvo interface
+tcpdump -i qvoa8b8fd82-3d
+qvoa8b8fd82-3d: no IPv4 address assigned
+output suppressed, use -v or -vv for full protocol decode
+qvoa8b8fd82-3d, link-type EN10MB (Ethernet), capture size 65535 bytes
+16:3e:91:3e:8e > ff:ff:ff:ff:ff:ff, ethertype IPv4 (0x0800), length 322: 0.0.0.0.68 > 255.255.255.255.67: BOOTP/DHCP, 16:3e:f5:64:e8 > fa:16:3e:91:3e:8e, ethertype IPv4 (0x0800), length 365: 10.0.0.3.67 > 10.0.0.7.68: BOOTP/DHCP, Reply
+
+- Packet enters Open vSwitch
+tun flow table:
+duration=575957.442s, table=0, n_packets=10090, n_bytes=685759, idle_age=1, hard_age=65534, priority=1,in_port=1 actions=duration=575957.261s, table=1, n_packets=9460, n_bytes=622184, idle_age=1, hard_age=65534, priority=0,dl_dst=01:00:00:duration=575957.321s, table=1, n_packets=630, n_bytes=63575, idle_age=83, hard_age=65534, priority=0,dl_dst=00:00:00:00:duration=204.681s, table=21, n_packets=87, n_bytes=4698, idle_age=49, hard_age=203, priority=1,dl_vlan=3 actions=strip_duration=765.74s, table=21, n_packets=0, n_bytes=0, idle_age=765, priority=1,dl_vlan=1 actions=strip_vlan,set_tunnel:0x1,duration=279.46s, table=21, n_packets=39, n_bytes=3810, idle_age=1, priority=1,dl_vlan=2 actions=strip_vlan,set_tunnel:duration=575956.934s, table=21, n_packets=16, n_bytes=1236, idle_age=205, hard_age=65534, priority=0 actions=drop
+
+- Packet exits Open vSwitch
+
+6 > 10.0.2.5: GREv0, key=0x1, proto TEB (0x6558), length 330: fa:16:3e:91:3e:8e > ff:ff:ff:ff:ff:ff, 10.0.2.5 > 10.0.2.6: GREv0, key=0x1, proto TEB (0x6558), length 373: fa:16:3e:f5:64:e8 > fa:16:3e:91:3e:8e,
+
+** Packet Flow  Network Node (GRE/VXLAN tunnels)
+- Packet enters network node
+root@network:~# tcpdump -i eth1 -n proto gre -vvv -XX
+tcpdump: listening on eth0, link-type EN10MB (Ethernet), capture
+size 65535 bytes
+15:55:17.051637 IP (tos 0x0, ttl 64, id 20352, offset 0, flags
+[DF], proto GRE (47), length 130)
+10.10.10.11 > 10.10.10.9: GREv0, Flags [key present],
+key=0x7, length 110
+IP (tos 0x0, ttl 64, id 0, offset 0, flags [DF], proto ICMP
+(1), length 84)
+10.5.5.35 > 8.8.8.8: ICMP echo request, id 27141, seq 0,
+length 64
+
+- Packet enters Open vSwitch
+
+# Open vSwitch br-tun flow table
+root@network:~# ovs-ofctl dump-flows br-tun
+NXST_FLOW reply (xid=0x4):
+cookie=0x0, duration=578533.772s, table=0, n_packets=9355,
+n_bytes=622734, idle_age=4094, hard_age=65534, priority=1,in_port=5
+actions=resubmit(,2)
+cookie=0x0, duration=3613.207s, table=2, n_packets=616,
+n_bytes=57653, idle_age=17, priority=1,tun_id=0x1
+actions=mod_vlan_vid:2,resubmit(,10)
+cookie=0x0, duration=579490.949s, table=10, n_packets=10216,
+n_bytes=694503, idle_age=17, hard_age=65534, priority=1
+actions=learn(table=20,hard_timeout=300,priority=1,NXM_OF_VLAN_TCI[0
+..11],NXM_OF_ETH_DST[]=NXM_OF_ETH_SRC[],load:0-
+>NXM_OF_VLAN_TCI[],load:NXM_NX_TUN_ID[]-
+>NXM_NX_TUN_ID[],output:NXM_OF_IN_PORT[]),output:1
+
+- Packet exits Open vSwitch into network namespace
+root@network:~# ip netns exec qdhcp-4d68a72b-2af5-46d6-
+aacd-6516a063a6d0 tcpdump -e -n -l -itap33b41c4d-99
+tcpdump: verbose output suppressed, use -v or -vv for
+full protocol decode
+
+- Packet enters network namespace
+root@network:~# ip netns exec qdhcp-4d68a72b-2af5-46d6-
+aacd-6516a063a6d0 tcpdump -e -n -l -itap33b41c4d-99
+tcpdump: verbose output suppressed, use -v or -vv for
+full protocol decode
+listening on tap33b41c4d-99, link-type EN10MB (Ethernet),
+capture size 65535 bytes
+18:27:02.275785 fa:16:3e:05:a2:00 > ff:ff:ff:ff:ff:ff,
+ethertype IPv4 (0x0800), length 322: 0.0.0.0.68 >
+255.255.255.255.67: BOOTP/DHCP, Request from
+fa:16:3e:05:a2:00, length 280
+18:27:02.276020 fa:16:3e:44:71:b0 > fa:16:3e:05:a2:00,
+ethertype IPv4 (0x0800), length 365: 10.0.0.3.67 >
+10.0.0.6.68: BOOTP/DHCP, Reply, length 323
+
+* Linux
+- Expert Linux system administration and troubleshooting skills
+
+  Linux Kernel module commands http://edoceo.com/howto/kernel-modules
+
+* Algorithms
+
+* Neutron/VPNaaS - CSR
+  http://blog.aaronorosen.com/openstack-interface-hot-plugging/
+
+** https://blueprints.launchpad.net/neutron/+spec/cisco-routing-service-vm
+** https://github.com/openstack/neutron-specs/blob/master/specs/juno/cisco-vpnaas-with-cisco-csr-router.rst
+** Class Diagrams
+#+begin_src sh
+# service plugin
+pyreverse -ASmy -k -o png -p VPNDriverPlugin neutron/services/vpn/plugin.py
+#service_provider(service_provider=VPN:openswan:neutron.services.vpn.service_drivers.ipsec.IPsecVPNDriver:default)
+pyreverse -ASmy -k -o png -p IPsecVPNDriver neutron/services/vpn/service_drivers/ipsec.py
+pyreverse -ASmy -k -o png -p CiscoCsrIPsecVPNDriver neutron/services/vpn/service_drivers/cisco_ipsec.py
+#pyreverse -ASmy -k -o png -p OpenSwanDriver neutron/services/vpn/device_drivers/ipsec.py
+#pyreverse -ASmy -k -o png -p VPNAgent neutron/services/vpn/agent.py
+
+/etc/neutron/neutron.conf
+  service_plugins=vpnaas
+  [service_plugins]
+  service_provider=VPN:openswan:neutron.services.vpn.service_drivers.ipsec.IPsecVPNDriver:default
+  service_provider=VPN:cisco:neutron.services.vpn.service_drivers.cisco_ipsec.CiscoCsrIPsecVPNDriver:default
+/etc/neutron/vpn_agent.ini
+  [vpnagent]
+  vpn_device_driver=neutron.services.vpn.device_drivers.ipsec.OpenSwanDriver
+  vpn_device_driver=neutron.services.vpn.device_drivers.cisco_ipsec.CiscoCsrIPsecDriver
+/etc/neutron/plugins/cisco/cisco_vpn_agent.ini
+  [cisco_csr_rest:172.24.4.11]
+  rest_mgmt = 192.168.200.20
+  tunnel_ip = 172.24.4.13
+  username = stack
+  password = cisco
+  timeout = 60
+
+/usr/bin/python /usr/bin/neutron-server --config-file /etc/neutron/neutron.conf --log-file /var/log/neutron/server.log --config-file /etc/neutron/plugins/openvswitch/ovs_neutron_plugin.ini
+apt-get install neutron-plugin-vpn-agent
+/usr/bin/python /usr/bin/neutron-vpn-agent --config-file=/etc/neutron/neutron.conf --config-file=/etc/neutron/vpn_agent.ini --config-file=/etc/neutron/l3_agent.ini --log-file=/var/log/neutron/vpn_agent.log
+
+#cloud-config
+password: mysecret
+chpasswd: { expire: False }
+ssh_pwauth: True
+
+mysql -u neutron -p neutron -e "show columns from pools"
+neutron-db-manage --config-file /etc/neutron/neutron.conf  --config-file /etc/neutron/plugins/ml2/ml2_conf.ini upgrade  --delta 1
+#+end_src
+
+* Redhat OpenStack Installation
+** Inputs
+*** https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux_OpenStack_Platform/5/html/Installer_and_Foreman_Guide/index.html
+*** https://openstack.redhat.com/Quickstart
+
+* Horizon
+  Django Basics https://docs.djangoproject.com/en/1.7/intro/tutorial01
+
+  Horizon Development http://docs.openstack.org/developer/horizon
+
+  Horizon Testing http://docs.openstack.org/developer/horizon/testing.html
+
+* Other References
+  http://dep4e.sourceforge.net/
+  http://openwritings.net/content/public/docbook/split-multiple-docbook-files
+  http://doccookbook.sourceforge.net/html/en/dbc.markup.xincludes.html
+  http://eclipse.org/vex/
+  http://docs.openstack.org/image-guide/content/ch_converting.html
+  http://orgmode.org/guide/
+  https://github.com/ciscocloud/mantl
+  https://spring.io/guides/gs/rest-service/
+
+* HashiCorp tools
+| Tool      | Description                                                                                                                   |
+|-----------+-------------------------------------------------------------------------------------------------------------------------------|
+| Vagrant   | to create and configure lightweight, reproducible and portable development environments using virtualbox, vmware, docker, etc |
+| Packer    | Tool to create images for AWS, OpenStack, Docker, VBox, etc                                                                   |
+| Serf      | Lightweight and decentralized solution for cluster membership, failure detection and orchestration                            |
+| Consul    | Distributed, highly-available and multi-datacenter aware tool for service discovery, configuration and orchestration          |
+| Terraform | Tool for creating, combining and managing infrrastructure resources across multiple providers like AWS, Goolgle cloud, etc    |
+| Vault     | Secures, stores and controls access to token, passwords, certificates, API keys and other sensitive resources in datacenters  |
+| Nomad     | Cluster manager and scheduler that provides a common workflow to deploy applications across an infrastructure.                |
+| Otto      | Tool to develop and deploy any application on any cloud platform, all controlled woth a single consistent workflow            |
+|           |                                                                                                                               |
