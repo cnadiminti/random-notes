@@ -23,7 +23,9 @@
    QEMU http://www.qemu.org
 
 ** virsh
+
 ** virt-manager
+
    http://virt-manager.org/
 
 * Python
@@ -68,6 +70,7 @@
 | Physical Layer     | Physical Cables  |
 
 ** Open vSwitch (OVS)
+
   http://openvswitch.org/
 
   https://www.hastexo.com/system/files/neutron_packet_flows-notes-handout.pdf
@@ -142,25 +145,38 @@
 
 ** Packet Flow Compute Node (GRE/VXLAN tunnels)
 - ping started on VM
+
+#+begin_src sh
 udpcpc
+#+end_src
 
 - tcpdump of ping on qvo interface
+
+#+begin_src sh
 tcpdump -i qvoa8b8fd82-3d
 qvoa8b8fd82-3d: no IPv4 address assigned
 output suppressed, use -v or -vv for full protocol decode
 qvoa8b8fd82-3d, link-type EN10MB (Ethernet), capture size 65535 bytes
 16:3e:91:3e:8e > ff:ff:ff:ff:ff:ff, ethertype IPv4 (0x0800), length 322: 0.0.0.0.68 > 255.255.255.255.67: BOOTP/DHCP, 16:3e:f5:64:e8 > fa:16:3e:91:3e:8e, ethertype IPv4 (0x0800), length 365: 10.0.0.3.67 > 10.0.0.7.68: BOOTP/DHCP, Reply
+#+end_src
 
 - Packet enters Open vSwitch
+
+#+begin_src sh
 tun flow table:
 duration=575957.442s, table=0, n_packets=10090, n_bytes=685759, idle_age=1, hard_age=65534, priority=1,in_port=1 actions=duration=575957.261s, table=1, n_packets=9460, n_bytes=622184, idle_age=1, hard_age=65534, priority=0,dl_dst=01:00:00:duration=575957.321s, table=1, n_packets=630, n_bytes=63575, idle_age=83, hard_age=65534, priority=0,dl_dst=00:00:00:00:duration=204.681s, table=21, n_packets=87, n_bytes=4698, idle_age=49, hard_age=203, priority=1,dl_vlan=3 actions=strip_duration=765.74s, table=21, n_packets=0, n_bytes=0, idle_age=765, priority=1,dl_vlan=1 actions=strip_vlan,set_tunnel:0x1,duration=279.46s, table=21, n_packets=39, n_bytes=3810, idle_age=1, priority=1,dl_vlan=2 actions=strip_vlan,set_tunnel:duration=575956.934s, table=21, n_packets=16, n_bytes=1236, idle_age=205, hard_age=65534, priority=0 actions=drop
+#+end_src
 
 - Packet exits Open vSwitch
-
+#+begin_src sh
 6 > 10.0.2.5: GREv0, key=0x1, proto TEB (0x6558), length 330: fa:16:3e:91:3e:8e > ff:ff:ff:ff:ff:ff, 10.0.2.5 > 10.0.2.6: GREv0, key=0x1, proto TEB (0x6558), length 373: fa:16:3e:f5:64:e8 > fa:16:3e:91:3e:8e,
+#+end_src
 
 ** Packet Flow  Network Node (GRE/VXLAN tunnels)
+
 - Packet enters network node
+
+#+begin_src sh
 root@network:~# tcpdump -i eth1 -n proto gre -vvv -XX
 tcpdump: listening on eth0, link-type EN10MB (Ethernet), capture
 size 65535 bytes
@@ -172,9 +188,11 @@ IP (tos 0x0, ttl 64, id 0, offset 0, flags [DF], proto ICMP
 (1), length 84)
 10.5.5.35 > 8.8.8.8: ICMP echo request, id 27141, seq 0,
 length 64
+#+end_src
 
 - Packet enters Open vSwitch
 
+#+begin_src sh
 # Open vSwitch br-tun flow table
 root@network:~# ovs-ofctl dump-flows br-tun
 NXST_FLOW reply (xid=0x4):
@@ -190,14 +208,18 @@ actions=learn(table=20,hard_timeout=300,priority=1,NXM_OF_VLAN_TCI[0
 ..11],NXM_OF_ETH_DST[]=NXM_OF_ETH_SRC[],load:0-
 >NXM_OF_VLAN_TCI[],load:NXM_NX_TUN_ID[]-
 >NXM_NX_TUN_ID[],output:NXM_OF_IN_PORT[]),output:1
+#+end_src
 
 - Packet exits Open vSwitch into network namespace
+#+begin_src sh
 root@network:~# ip netns exec qdhcp-4d68a72b-2af5-46d6-
 aacd-6516a063a6d0 tcpdump -e -n -l -itap33b41c4d-99
 tcpdump: verbose output suppressed, use -v or -vv for
 full protocol decode
+#+end_src
 
 - Packet enters network namespace
+#+begin_src sh
 root@network:~# ip netns exec qdhcp-4d68a72b-2af5-46d6-
 aacd-6516a063a6d0 tcpdump -e -n -l -itap33b41c4d-99
 tcpdump: verbose output suppressed, use -v or -vv for
@@ -211,8 +233,10 @@ fa:16:3e:05:a2:00, length 280
 18:27:02.276020 fa:16:3e:44:71:b0 > fa:16:3e:05:a2:00,
 ethertype IPv4 (0x0800), length 365: 10.0.0.3.67 >
 10.0.0.6.68: BOOTP/DHCP, Reply, length 323
+#+end_src
 
 * Linux
+
 - Expert Linux system administration and troubleshooting skills
 
   Linux Kernel module commands http://edoceo.com/howto/kernel-modules
@@ -220,9 +244,13 @@ ethertype IPv4 (0x0800), length 365: 10.0.0.3.67 >
 * Algorithms
 
 * Neutron/VPNaaS - CSR
+
   http://blog.aaronorosen.com/openstack-interface-hot-plugging/
+
   https://blueprints.launchpad.net/neutron/+spec/cisco-routing-service-vm
+
   https://github.com/openstack/neutron-specs/blob/master/specs/juno/cisco-vpnaas-with-cisco-csr-router.rst
+
 ** Class Diagrams
 #+begin_src sh
 # service plugin
@@ -261,7 +289,9 @@ ssh_pwauth: True
 #+end_src
 
 * Redhat OpenStack Installation
+
  https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux_OpenStack_Platform/5/html/Installer_and_Foreman_Guide/index.html
+
  https://openstack.redhat.com/Quickstart
 
 * Horizon
@@ -272,14 +302,23 @@ ssh_pwauth: True
   Horizon Testing http://docs.openstack.org/developer/horizon/testing.html
 
 * Other References
+
   http://dep4e.sourceforge.net/
+  
   http://openwritings.net/content/public/docbook/split-multiple-docbook-files
+  
   http://doccookbook.sourceforge.net/html/en/dbc.markup.xincludes.html
+  
   http://eclipse.org/vex/
+  
   http://docs.openstack.org/image-guide/content/ch_converting.html
+  
   http://orgmode.org/guide/
+  
   https://github.com/ciscocloud/mantl
+  
   https://spring.io/guides/gs/rest-service/
+
 
 * HashiCorp tools
 | Tool      | Description                                                                                                                   |
