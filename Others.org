@@ -1,3 +1,21 @@
+#+TITLE:     Other Notes
+#+AUTHOR:    Chandra Mohan Babu, Nadiminti
+#+EMAIL:     nadiminti.chandra@gmail.com
+#+LANGUAGE:  en
+#+INFOJS_OPT: view:showall toc:t ltoc:nil mouse:underline path:http://orgmode.org/org-info.js
+#+LINK_HOME: 
+#+LINK_UP: 
+#+LaTeX_CLASS: smarticle
+#+LaTeX_HEADER: \pdfmapfile{/home/neilsen/texmf/fonts/map/dvips/libertine/libertine.map}
+#+LaTeX_HEADER: \usepackage[ttscale=.875]{libertine}
+#+LaTeX_HEADER: \usepackage{sectsty}
+#+LaTeX_HEADER: \sectionfont{\normalfont\scshape}
+#+LaTeX_HEADER: \subsectionfont{\normalfont\itshape}
+#+EXPORT_SELECT_TAGS: export
+#+EXPORT_EXCLUDE_TAGS: noexport
+#+OPTIONS: H:4 num:t toc:t \n:nil @:t ::t |:t ^:{} _:{} *:t TeX:t LaTeX:t
+#+STARTUP: showall
+
 * Virtualization
 ** KVM(Kernel-based Virtual Machine) and libvirt
    KVM http://www.linux-kvm.org
