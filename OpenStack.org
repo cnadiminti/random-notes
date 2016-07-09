@@ -56,9 +56,9 @@
 *** Storage
 
 * Architectures
-  Example Architecture - Legacy Networking (nova)
-  Example Architecture - OpenStack Networking(neutron)
-  http://docs.openstack.org/openstack-ops/content/example_architecture.html
+  Openstack high level architecture- http://docs.openstack.org/ops-guide/architecture.html
+  Example Architecture - Legacy Networking (nova) http://docs.openstack.org/ops-guide/arch_example_nova_network.html
+  Example Architecture - OpenStack Networking(neutron) http://docs.openstack.org/ops-guide/arch_example_neutron.html
 
 * Deployment/Installation
    [[http://docs.openstack.org/developer/devstack/][DevStack]] - an OpenStack Community Production
